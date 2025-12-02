@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from typing import List, Optional, Union
 from dataclasses import replace
@@ -271,8 +272,8 @@ class WhisperModel(faster_whisper.WhisperModel):
                         else:
                             alignment[i]["end"] = alignment[i]["start"] + max_duration
 
-            prepend_punctuations: str = ("\"'"¿([{-",)
-            append_punctuations: str = ("\"'.。,，!！?？:：")]}、",)
+            prepend_punctuations = '"' + "'" + '"' + '¿([{-'
+            append_punctuations = '"' + "'" + '.。,，!！?？:：")]}、'
             alignment = self.merge_punctuations(
                 alignment, prepend_punctuations, append_punctuations
             )
