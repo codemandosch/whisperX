@@ -126,6 +126,29 @@ TO_LANGUAGE_CODE = {
 
 LANGUAGES_WITHOUT_SPACES = ["ja", "zh"]
 
+# Mapping of language codes to NLTK Punkt tokenizer model names
+PUNKT_LANGUAGES = {
+    'cs': 'czech',
+    'da': 'danish', 
+    'de': 'german',
+    'el': 'greek',
+    'en': 'english',
+    'es': 'spanish',
+    'et': 'estonian',
+    'fi': 'finnish',
+    'fr': 'french',
+    'it': 'italian',
+    'nl': 'dutch',
+    'no': 'norwegian',
+    'pl': 'polish',
+    'pt': 'portuguese',
+    'sl': 'slovene',
+    'sv': 'swedish',
+    'tr': 'turkish',
+    "ml": "malayalam",
+    "ru": "russian",
+}
+
 system_encoding = sys.getdefaultencoding()
 
 if system_encoding != "utf-8":
@@ -214,7 +237,12 @@ class WriteTXT(ResultWriter):
 
     def write_result(self, result: dict, file: TextIO, options: dict):
         for segment in result["segments"]:
-            print(segment["text"].strip(), file=file, flush=True)
+            speaker = segment.get("speaker")
+            text = segment["text"].strip()
+            if speaker is not None:
+                print(f"[{speaker}]: {text}", file=file, flush=True)
+            else:
+                print(text, file=file, flush=True)
 
 
 class SubtitlesWriter(ResultWriter):
@@ -236,7 +264,7 @@ class SubtitlesWriter(ResultWriter):
             line_count = 1
             # the next subtitle to yield (a list of word timings with whitespace)
             subtitle: list[dict] = []
-            times = []
+            times: list[tuple] = []
             last = result["segments"][0]["start"]
             for segment in result["segments"]:
                 for i, original_timing in enumerate(segment["words"]):
@@ -405,7 +433,7 @@ class WriteJSON(ResultWriter):
 
 def get_writer(
     output_format: str, output_dir: str
-) -> Callable[[dict, TextIO, dict], None]:
+) -> Callable[[dict, str, dict], None]:
     writers = {
         "txt": WriteTXT,
         "vtt": WriteVTT,
@@ -420,7 +448,7 @@ def get_writer(
     if output_format == "all":
         all_writers = [writer(output_dir) for writer in writers.values()]
 
-        def write_all(result: dict, file: TextIO, options: dict):
+        def write_all(result: dict, file: str, options: dict):
             for writer in all_writers:
                 writer(result, file, options)
 
